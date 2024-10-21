@@ -36,7 +36,7 @@ class App extends React.Component {
   constructor(props){
     super(props);
     this.state ={
-      location: "Lisbon",
+      location: "Colombia",
       isLoading: false,
       displayLocation : '', 
       weather: {},
@@ -69,6 +69,7 @@ class App extends React.Component {
       );
       const weatherData = await weatherRes.json();
       this.setState ({weather:  weatherData.daily});
+      console.log(weatherData)
     } catch (err) {
       console.err(err);
     }finally {
@@ -93,9 +94,57 @@ class App extends React.Component {
         </div>
         <button onClick={this.fetchWeather}>Get weather</button>
         {this.state.isLoading && <p>Loading...</p>  }
+
+        {this.state.weather.weathercode && (
+          <Weather 
+            weather = {this.state.weather} 
+            location = {this.state.displayLocation}/>
+          )
+        }
       </div>
     )
   }
 }
 
 export default App;
+
+class Weather extends React.Component {
+  render(){
+    const {
+      temperature_2m_max: max,
+      temperature_2m_min: min,
+      time: dates,
+      weathercode: codes,
+    }= this.props.weather;
+    return (
+      <div>
+        <h2>Weather {this.props.location} </h2>
+        <ul className="weather">
+          {dates.map((date, i)=>(
+            <Day
+              date ={date}
+              max ={max.at(i)}
+              min ={min.at(i)}
+              code = {codes.at(i)}
+              key={date}  // unique key for each day
+              isToday = {i === 0}
+            />
+          ))}
+        </ul>
+      </div>
+    );
+  }
+}
+
+class Day extends React.Component {
+  render(){
+    const { date, max, min, code, isToday } = this.props;
+    return (
+      <li className="day">
+        <span>{getWeatherIcon(code)} </span>
+        <p>{isToday ? "Today" : formatDay(date)}</p>
+        <p>{Math.floor(min)}&deg; &mdash; <strong> {Math.ceil(max)}&deg;</strong> </p>
+      </li>
+    )
+  }
+}
